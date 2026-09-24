@@ -4,55 +4,122 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movimento")]
-    public float velocidadeMovimento = 8f;
+    [SerializeField] private float velocidadeMovimento = 15f;
+    [SerializeField] private float suavidade = 15f;
 
     [Header("Queda")]
-    public float velocidadeQueda = 5f;
-    public float aceleracaoQueda = 0.5f;
-    public float velocidadeQuedaMaxima = 30f;
+    [SerializeField] private float velocidadeQueda = 5f;
+    [SerializeField] private float aceleracaoQueda = 0.5f;
+    [SerializeField] private float velocidadeQuedaMaxima = 30f;
+
+    [Header("Início")]
+    [SerializeField] private Vector3 posicaoInicial;
 
     [Header("Morte")]
-    public GameObject painelMorte; // arraste o painel de UI de morte aqui no Inspector
+    [SerializeField] private GameObject painelMorte;
 
     private Rigidbody rb;
-    private bool morto = false;
+    private Camera cam;
 
-    void Awake()
+    private Vector3 alvo;
+    private bool jogoIniciado;
+    private bool morto;
+
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        cam = Camera.main;
     }
 
-    void FixedUpdate()
+    private void Start()
     {
-        if (morto) return; // trava tudo se já morreu
+        transform.position = posicaoInicial;
 
-        // Aumenta a velocidade da queda
+        rb.linearVelocity = Vector3.zero;
+        rb.isKinematic = false;
+
+        alvo = transform.position;
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void Update()
+    {
+        if (!jogoIniciado || morto)
+            return;
+
+        if (Mouse.current == null)
+            return;
+
+        if (Mouse.current.leftButton.isPressed)
+        {
+            MoverComMouse();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!jogoIniciado || morto)
+            return;
+
         velocidadeQueda += aceleracaoQueda * Time.fixedDeltaTime;
-        velocidadeQueda = Mathf.Min(velocidadeQueda, velocidadeQuedaMaxima);
 
-        Vector3 movimento = Vector3.zero;
+        velocidadeQueda = Mathf.Min(
+            velocidadeQueda,
+            velocidadeQuedaMaxima
+        );
 
-        if (Keyboard.current.wKey.isPressed)
-            movimento += Vector3.forward;
-        if (Keyboard.current.sKey.isPressed)
-            movimento += Vector3.back;
-        if (Keyboard.current.aKey.isPressed)
-            movimento += Vector3.left;
-        if (Keyboard.current.dKey.isPressed)
-            movimento += Vector3.right;
+        Vector3 posicao = rb.position;
 
-        if (movimento.magnitude > 1f)
-            movimento.Normalize();
+        posicao.x = Mathf.Lerp(
+            posicao.x,
+            alvo.x,
+            suavidade * Time.fixedDeltaTime
+        );
 
-        Vector3 velocidadeHorizontal = movimento * velocidadeMovimento;
-        velocidadeHorizontal.y = -velocidadeQueda;
+        posicao.z = Mathf.Lerp(
+            posicao.z,
+            alvo.z,
+            suavidade * Time.fixedDeltaTime
+        );
 
-        rb.linearVelocity = velocidadeHorizontal;
+        rb.MovePosition(posicao);
+
+        rb.linearVelocity = new Vector3(
+            0f,
+            -velocidadeQueda,
+            0f
+        );
     }
 
-    void OnCollisionEnter(Collision collision)
+    private void MoverComMouse()
     {
-        if (morto) return;
+        Vector2 mousePosition = Mouse.current.position.ReadValue();
+
+        Ray ray = cam.ScreenPointToRay(mousePosition);
+
+        Plane planoMovimento = new Plane(
+            Vector3.up,
+            transform.position
+        );
+
+        if (planoMovimento.Raycast(ray, out float distancia))
+        {
+            Vector3 ponto = ray.GetPoint(distancia);
+
+            alvo = new Vector3(
+                ponto.x,
+                transform.position.y,
+                ponto.z
+            );
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (morto || !jogoIniciado)
+            return;
 
         if (collision.gameObject.CompareTag("Obstacle"))
         {
@@ -60,28 +127,45 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Morrer()
+    private void Morrer()
     {
         morto = true;
 
-        // Zera a velocidade pra parar de vez (inclusive a queda)
         rb.linearVelocity = Vector3.zero;
-        rb.isKinematic = true; // opcional: trava física totalmente
+        rb.isKinematic = true;
 
         if (painelMorte != null)
-        {
             painelMorte.SetActive(true);
-        }
 
-        Time.timeScale = 0f; // opcional: pausa o jogo inteiro (remova se não quiser)
+        Time.timeScale = 0f;
     }
 
-    // Chame isso no botão de "Reiniciar" da UI
-    public void Reiniciar()
+    public void IniciarMovimento()
     {
-        Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
-        );
+        jogoIniciado = true;
+        morto = false;
+
+        rb.isKinematic = false;
+        rb.linearVelocity = Vector3.zero;
+
+        alvo = transform.position;
+    }
+
+    public void ResetarJogo()
+    {
+        morto = false;
+        jogoIniciado = false;
+
+        rb.isKinematic = false;
+        rb.linearVelocity = Vector3.zero;
+
+        transform.position = posicaoInicial;
+
+        alvo = posicaoInicial;
+
+        velocidadeQueda = 5f;
+
+        if (painelMorte != null)
+            painelMorte.SetActive(false);
     }
 }
