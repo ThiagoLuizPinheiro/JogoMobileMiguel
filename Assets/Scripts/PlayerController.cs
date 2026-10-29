@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movimento")]
-<<<<<<< HEAD
     [SerializeField] private float suavidade = 8f;
     [SerializeField] private float velocidadeMaxima = 12f;
 
@@ -19,10 +18,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float suavizacaoInclinacao = 10f;
     [SerializeField] private bool inverterX = false;
     [SerializeField] private bool inverterY = false;
-=======
-    [SerializeField] private float velocidadeMovimento = 15f;
-    [SerializeField] private float suavidade = 15f;
->>>>>>> parent of 3ee18e2 (a build)
 
     [Header("Queda")]
     [SerializeField] private float velocidadeQuedaInicial = 5f;
@@ -56,11 +51,8 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private Camera cam;
     private Vector3 alvo;
-<<<<<<< HEAD
 
     private float velocidadeQueda;
-=======
->>>>>>> parent of 3ee18e2 (a build)
     private bool jogoIniciado;
     private bool morto;
 
@@ -75,7 +67,6 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         cam = Camera.main;
-<<<<<<< HEAD
 
         rb.useGravity = false;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -88,33 +79,19 @@ public class PlayerController : MonoBehaviour
     private void OnDestroy()
     {
         DesativarSensores();
-=======
->>>>>>> parent of 3ee18e2 (a build)
     }
 
     private void Start()
     {
-<<<<<<< HEAD
         rb.position = posicaoInicial;
-=======
-        transform.position = posicaoInicial;
-
->>>>>>> parent of 3ee18e2 (a build)
         rb.linearVelocity = Vector3.zero;
-        rb.isKinematic = false;
+        rb.angularVelocity = Vector3.zero;
 
-<<<<<<< HEAD
         alvo = posicaoInicial;
         velocidadeQueda = velocidadeQuedaInicial;
 
         PararEfeitos(true);
         EsconderDica();
-=======
-        alvo = transform.position;
-
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
->>>>>>> parent of 3ee18e2 (a build)
     }
 
     // ---------------- SENSORES ----------------
@@ -197,7 +174,6 @@ public class PlayerController : MonoBehaviour
         if (!jogoIniciado || morto)
             return;
 
-<<<<<<< HEAD
         if (ModoInclinacao)
         {
             Vector2 alvoInclinacao = LerInclinacao();
@@ -265,14 +241,6 @@ public class PlayerController : MonoBehaviour
                 rb.position.y,
                 ponto.z
             );
-=======
-        if (Mouse.current == null)
-            return;
-
-        if (Mouse.current.leftButton.isPressed)
-        {
-            MoverComMouse();
->>>>>>> parent of 3ee18e2 (a build)
         }
     }
 
@@ -281,19 +249,12 @@ public class PlayerController : MonoBehaviour
         if (!jogoIniciado || morto)
             return;
 
-<<<<<<< HEAD
         velocidadeQueda = Mathf.MoveTowards(
-=======
-        velocidadeQueda += aceleracaoQueda * Time.fixedDeltaTime;
-
-        velocidadeQueda = Mathf.Min(
->>>>>>> parent of 3ee18e2 (a build)
             velocidadeQueda,
             velocidadeQuedaMaxima,
             aceleracaoQueda * Time.fixedDeltaTime
         );
 
-<<<<<<< HEAD
         Vector3 horizontal;
 
         if (ModoInclinacao)
@@ -314,26 +275,8 @@ public class PlayerController : MonoBehaviour
                 velocidadeMaxima
             );
         }
-=======
-        Vector3 posicao = rb.position;
-
-        posicao.x = Mathf.Lerp(
-            posicao.x,
-            alvo.x,
-            suavidade * Time.fixedDeltaTime
-        );
->>>>>>> parent of 3ee18e2 (a build)
-
-        posicao.z = Mathf.Lerp(
-            posicao.z,
-            alvo.z,
-            suavidade * Time.fixedDeltaTime
-        );
-
-        rb.MovePosition(posicao);
 
         rb.linearVelocity = new Vector3(
-<<<<<<< HEAD
             horizontal.x,
             -velocidadeQueda,
             horizontal.z
@@ -374,35 +317,6 @@ public class PlayerController : MonoBehaviour
             velocidadeParticulaMaxima,
             t
         );
-=======
-            0f,
-            -velocidadeQueda,
-            0f
-        );
-    }
-
-    private void MoverComMouse()
-    {
-        Vector2 mousePosition = Mouse.current.position.ReadValue();
-
-        Ray ray = cam.ScreenPointToRay(mousePosition);
-
-        Plane planoMovimento = new Plane(
-            Vector3.up,
-            transform.position
-        );
-
-        if (planoMovimento.Raycast(ray, out float distancia))
-        {
-            Vector3 ponto = ray.GetPoint(distancia);
-
-            alvo = new Vector3(
-                ponto.x,
-                transform.position.y,
-                ponto.z
-            );
-        }
->>>>>>> parent of 3ee18e2 (a build)
     }
 
     private void PararEfeitos(bool limpar)
@@ -442,6 +356,7 @@ public class PlayerController : MonoBehaviour
         morto = true;
 
         rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
 
         PararEfeitos(false);
@@ -471,13 +386,15 @@ public class PlayerController : MonoBehaviour
 
     public void IniciarMovimento()
     {
+        Time.timeScale = 1f;
+
         jogoIniciado = true;
         morto = false;
 
         rb.isKinematic = false;
         rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
 
-<<<<<<< HEAD
         alvo = rb.position;
         velocidadeQueda = velocidadeQuedaInicial;
 
@@ -494,31 +411,20 @@ public class PlayerController : MonoBehaviour
             rastro.Clear();
             rastro.emitting = true;
         }
-=======
-        alvo = transform.position;
->>>>>>> parent of 3ee18e2 (a build)
     }
 
     public void ResetarJogo()
     {
-<<<<<<< HEAD
         Time.timeScale = 1f;
 
-=======
-        morto = false;
->>>>>>> parent of 3ee18e2 (a build)
         jogoIniciado = false;
         morto = false;
 
         rb.isKinematic = false;
         rb.position = posicaoInicial;
         rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
 
-<<<<<<< HEAD
-=======
-        transform.position = posicaoInicial;
-
->>>>>>> parent of 3ee18e2 (a build)
         alvo = posicaoInicial;
         velocidadeQueda = velocidadeQuedaInicial;
         inclinacaoSuave = Vector2.zero;
